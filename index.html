@@ -1,0 +1,1951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Virtual Time Capsule 💐</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&family=Dancing+Script:wght@600&display=swap" rel="stylesheet" />
+  <!-- QR Code library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+/* ── CSS VARIABLES ──────────────────────────────── */
+:root {
+  --pink:       #f7a8c4;
+  --pink-deep:  #e8729a;
+  --lavender:   #c9b8e8;
+  --lavender-d: #9b84d6;
+  --peach:      #f9c9a8;
+  --peach-d:    #f0a070;
+  --cream:      #fff8f5;
+  --white:      #ffffff;
+  --green:      #b5d5a8;
+  --green-d:    #7db87a;
+  --text:       #3d2b3d;
+  --text-light: #8a6a8a;
+  --shadow:     rgba(180,120,160,0.18);
+  --radius:     20px;
+  --font-head:  'Playfair Display', serif;
+  --font-body:  'DM Sans', sans-serif;
+  --font-script:'Dancing Script', cursive;
+  --api: 'http://localhost:5000';
+}
+
+/* ── RESET & BASE ───────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-body);
+  background: var(--cream);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── FLOATING PETALS BACKGROUND ────────────────── */
+.petals-bg {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 0; overflow: hidden;
+}
+.petal {
+  position: absolute;
+  font-size: 1.4rem;
+  opacity: 0;
+  animation: petalFall linear infinite;
+}
+@keyframes petalFall {
+  0%   { opacity: 0; transform: translateY(-20px) rotate(0deg); }
+  10%  { opacity: 0.7; }
+  90%  { opacity: 0.4; }
+  100% { opacity: 0; transform: translateY(100vh) rotate(720deg) translateX(80px); }
+}
+
+/* ── PAGES ──────────────────────────────────────── */
+.page { display: none; position: relative; z-index: 1; min-height: 100vh; }
+.page.active { display: block; }
+
+/* ── NAV ────────────────────────────────────────── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 32px;
+  background: rgba(255,248,245,0.88);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(247,168,196,0.3);
+}
+.nav-logo {
+  font-family: var(--font-script);
+  font-size: 1.6rem;
+  color: var(--pink-deep);
+  cursor: pointer;
+}
+.nav-btn {
+  background: linear-gradient(135deg, var(--pink), var(--lavender));
+  color: white;
+  border: none;
+  padding: 10px 22px;
+  border-radius: 50px;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform .2s, box-shadow .2s;
+  box-shadow: 0 4px 15px var(--shadow);
+}
+.nav-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px var(--shadow); }
+
+/* ── HERO ────────────────────────────────────────── */
+#page-home {
+  padding-top: 80px;
+  background: linear-gradient(160deg, #fff0f7 0%, #f3eeff 50%, #fff5ee 100%);
+}
+.hero {
+  text-align: center;
+  padding: 80px 24px 60px;
+  position: relative;
+}
+.hero-badge {
+  display: inline-block;
+  background: rgba(247,168,196,0.2);
+  border: 1px solid rgba(247,168,196,0.5);
+  color: var(--pink-deep);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 6px 18px;
+  border-radius: 50px;
+  margin-bottom: 20px;
+}
+.hero h1 {
+  font-family: var(--font-head);
+  font-size: clamp(2.4rem, 6vw, 4.2rem);
+  line-height: 1.18;
+  color: var(--text);
+  margin-bottom: 18px;
+}
+.hero h1 em { font-style: italic; color: var(--pink-deep); }
+.hero p {
+  font-size: 1.1rem;
+  color: var(--text-light);
+  max-width: 520px;
+  margin: 0 auto 36px;
+  line-height: 1.7;
+}
+.hero-flowers {
+  font-size: 3rem;
+  margin-bottom: 30px;
+  animation: floatFlowers 3s ease-in-out infinite;
+  display: block;
+}
+@keyframes floatFlowers {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-10px); }
+}
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: linear-gradient(135deg, var(--pink-deep), var(--lavender-d));
+  color: white;
+  border: none;
+  padding: 16px 40px;
+  border-radius: 50px;
+  font-size: 1.05rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .3s;
+  box-shadow: 0 6px 25px rgba(232,114,154,0.35);
+  font-family: var(--font-body);
+}
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 35px rgba(232,114,154,0.45);
+}
+.btn-secondary {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: white;
+  color: var(--pink-deep);
+  border: 2px solid var(--pink);
+  padding: 14px 36px;
+  border-radius: 50px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .3s;
+  font-family: var(--font-body);
+}
+.btn-secondary:hover { background: var(--pink); color: white; }
+
+/* ── SAMPLE CARDS ────────────────────────────────── */
+.samples {
+  padding: 40px 24px 80px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.samples h2 {
+  font-family: var(--font-head);
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 10px;
+}
+.samples-sub { text-align: center; color: var(--text-light); margin-bottom: 40px; }
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+.sample-card {
+  background: white;
+  border-radius: 24px;
+  padding: 30px 24px;
+  box-shadow: 0 8px 30px var(--shadow);
+  transition: transform .3s, box-shadow .3s;
+  cursor: pointer;
+  text-align: center;
+  border: 1px solid rgba(247,168,196,0.2);
+}
+.sample-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 16px 45px var(--shadow);
+}
+.sample-card .emoji { font-size: 3rem; margin-bottom: 12px; display: block; }
+.sample-card h3 { font-family: var(--font-head); font-size: 1.2rem; margin-bottom: 8px; }
+.sample-card p { font-size: 0.88rem; color: var(--text-light); line-height: 1.6; }
+.sample-card .tag {
+  display: inline-block;
+  background: rgba(201,184,232,0.25);
+  color: var(--lavender-d);
+  font-size: 0.75rem;
+  padding: 3px 12px;
+  border-radius: 50px;
+  margin-top: 10px;
+}
+
+/* ── FEATURES STRIP ──────────────────────────────── */
+.features {
+  background: white;
+  padding: 60px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  justify-content: center;
+}
+.feature-item { text-align: center; max-width: 180px; }
+.feature-item .icon { font-size: 2.4rem; margin-bottom: 10px; }
+.feature-item h4 { font-family: var(--font-head); font-size: 1rem; margin-bottom: 6px; }
+.feature-item p { font-size: 0.82rem; color: var(--text-light); line-height: 1.5; }
+
+/* ── CREATE CARD FORM PAGE ───────────────────────── */
+#page-create {
+  padding-top: 80px;
+  background: linear-gradient(160deg, #fff0f7 0%, #f3eeff 60%, #fff5ee 100%);
+  min-height: 100vh;
+}
+.form-container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+.form-container h2 {
+  font-family: var(--font-head);
+  font-size: 2rem;
+  margin-bottom: 6px;
+  text-align: center;
+}
+.form-container .subtitle {
+  text-align: center;
+  color: var(--text-light);
+  margin-bottom: 36px;
+  font-size: 0.95rem;
+}
+
+/* Progress bar */
+.progress-bar {
+  display: flex; gap: 6px;
+  margin-bottom: 32px;
+  justify-content: center;
+}
+.progress-step {
+  height: 6px;
+  flex: 1;
+  border-radius: 3px;
+  background: rgba(247,168,196,0.3);
+  transition: background .4s;
+  max-width: 80px;
+}
+.progress-step.done { background: var(--pink-deep); }
+.progress-step.active { background: linear-gradient(90deg, var(--pink-deep), var(--lavender-d)); }
+
+/* Form fields */
+.field-group { margin-bottom: 22px; }
+.field-group label {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.field-group input,
+.field-group select,
+.field-group textarea {
+  width: 100%;
+  padding: 14px 18px;
+  border: 2px solid rgba(247,168,196,0.3);
+  border-radius: 14px;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--text);
+  background: white;
+  transition: border-color .2s, box-shadow .2s;
+  outline: none;
+}
+.field-group input:focus,
+.field-group select:focus,
+.field-group textarea:focus {
+  border-color: var(--pink);
+  box-shadow: 0 0 0 4px rgba(247,168,196,0.2);
+}
+.field-group textarea { resize: vertical; min-height: 120px; line-height: 1.6; }
+
+/* Image upload */
+.img-upload-area {
+  border: 2px dashed rgba(247,168,196,0.5);
+  border-radius: 16px;
+  padding: 36px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .3s;
+  background: rgba(255,248,245,0.5);
+}
+.img-upload-area:hover {
+  border-color: var(--pink);
+  background: rgba(247,168,196,0.08);
+}
+.img-upload-area .upload-icon { font-size: 2.5rem; margin-bottom: 10px; }
+.img-upload-area p { color: var(--text-light); font-size: 0.88rem; }
+.img-upload-area input { display: none; }
+#img-preview {
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 14px;
+  margin-top: 14px;
+  display: none;
+}
+
+/* Occasion buttons */
+.occasion-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.occasion-btn {
+  padding: 14px;
+  border: 2px solid rgba(247,168,196,0.3);
+  border-radius: 14px;
+  background: white;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--text);
+  transition: all .2s;
+  text-align: center;
+}
+.occasion-btn:hover { border-color: var(--pink); background: rgba(247,168,196,0.08); }
+.occasion-btn.selected {
+  border-color: var(--pink-deep);
+  background: linear-gradient(135deg, rgba(247,168,196,0.2), rgba(201,184,232,0.2));
+  color: var(--pink-deep);
+  font-weight: 500;
+}
+
+/* AI Message */
+.ai-row {
+  display: flex; gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.ai-tone-btn {
+  flex: 1;
+  min-width: 80px;
+  padding: 10px 8px;
+  border: 2px solid rgba(247,168,196,0.3);
+  border-radius: 12px;
+  background: white;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--text-light);
+  transition: all .2s;
+}
+.ai-tone-btn.selected {
+  border-color: var(--lavender-d);
+  background: rgba(201,184,232,0.2);
+  color: var(--lavender-d);
+  font-weight: 500;
+}
+.btn-ai {
+  width: 100%;
+  padding: 13px;
+  background: linear-gradient(135deg, var(--lavender), var(--lavender-d));
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all .3s;
+  margin-top: 10px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-ai:hover { opacity: 0.9; transform: translateY(-1px); }
+
+/* Form navigation */
+.form-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 32px;
+  gap: 12px;
+}
+.btn-back {
+  padding: 13px 28px;
+  background: white;
+  border: 2px solid rgba(247,168,196,0.4);
+  border-radius: 50px;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  color: var(--text-light);
+  cursor: pointer;
+  transition: all .2s;
+}
+.btn-back:hover { border-color: var(--pink); color: var(--pink-deep); }
+.btn-next {
+  flex: 1;
+  max-width: 260px;
+  padding: 14px 28px;
+  background: linear-gradient(135deg, var(--pink-deep), var(--lavender-d));
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .3s;
+  box-shadow: 0 4px 18px var(--shadow);
+}
+.btn-next:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px var(--shadow);
+}
+
+/* ── BOUQUET BUILDER ─────────────────────────────── */
+#page-bouquet {
+  padding-top: 80px;
+  background: linear-gradient(160deg, #f0ffe8 0%, #fff0f7 50%, #f3eeff 100%);
+  min-height: 100vh;
+}
+.bouquet-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+.bouquet-container h2 {
+  font-family: var(--font-head);
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 6px;
+}
+.bouquet-container .subtitle {
+  text-align: center;
+  color: var(--text-light);
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+}
+.bouquet-count {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--pink-deep);
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+/* Leaves row */
+.leaves-section { margin-bottom: 24px; }
+.leaves-section h4 { font-size: 0.9rem; color: var(--text-light); margin-bottom: 10px; }
+.leaves-grid {
+  display: flex; gap: 10px; flex-wrap: wrap;
+}
+.leaf-btn {
+  padding: 10px 18px;
+  border: 2px solid rgba(181,213,168,0.5);
+  border-radius: 50px;
+  background: rgba(181,213,168,0.15);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all .2s;
+  color: var(--green-d);
+}
+.leaf-btn.selected {
+  border-color: var(--green-d);
+  background: rgba(181,213,168,0.4);
+  font-weight: 500;
+}
+.leaf-btn:hover { background: rgba(181,213,168,0.3); }
+
+/* Flower grid */
+.flowers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 14px;
+  margin-bottom: 32px;
+}
+.flower-card {
+  background: white;
+  border: 2px solid rgba(247,168,196,0.2);
+  border-radius: 18px;
+  padding: 16px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .25s;
+  position: relative;
+  user-select: none;
+}
+.flower-card:hover {
+  transform: translateY(-4px) scale(1.04);
+  box-shadow: 0 8px 24px var(--shadow);
+}
+.flower-card .flower-emoji { font-size: 2.4rem; display: block; margin-bottom: 6px; }
+.flower-card .flower-name { font-size: 0.8rem; color: var(--text-light); }
+.flower-card .flower-count {
+  position: absolute; top: 6px; right: 8px;
+  background: var(--pink-deep);
+  color: white;
+  border-radius: 50%;
+  width: 20px; height: 20px;
+  font-size: 0.7rem;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+  display: none;
+}
+.flower-card.selected {
+  border-color: var(--pink-deep);
+  background: linear-gradient(135deg, rgba(247,168,196,0.15), rgba(201,184,232,0.15));
+}
+.flower-card.selected .flower-count { display: flex; }
+
+/* Bouquet Preview */
+.bouquet-preview {
+  background: white;
+  border-radius: 24px;
+  padding: 28px;
+  box-shadow: 0 8px 30px var(--shadow);
+  margin-bottom: 28px;
+  text-align: center;
+}
+.bouquet-preview h3 {
+  font-family: var(--font-head);
+  font-size: 1.1rem;
+  margin-bottom: 16px;
+  color: var(--text-light);
+}
+.bouquet-display {
+  min-height: 120px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 16px;
+  position: relative;
+}
+.bouquet-flower {
+  font-size: 2rem;
+  animation: popIn .3s cubic-bezier(.34,1.56,.64,1);
+  cursor: grab;
+  transition: transform .15s;
+}
+.bouquet-flower:hover { transform: scale(1.2) rotate(5deg); }
+.bouquet-leaf {
+  font-size: 1.6rem;
+  opacity: 0.85;
+  animation: popIn .3s ease;
+}
+@keyframes popIn {
+  0%   { transform: scale(0) rotate(-20deg); opacity: 0; }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+.bouquet-empty { color: var(--text-light); font-size: 0.9rem; opacity: 0.6; }
+
+/* ── SHARE PAGE ──────────────────────────────────── */
+#page-share {
+  padding-top: 80px;
+  background: linear-gradient(160deg, #fff0f7 0%, #f3eeff 50%, #fff5ee 100%);
+  min-height: 100vh;
+}
+.share-container {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+  text-align: center;
+}
+.share-container h2 {
+  font-family: var(--font-head);
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+.success-icon {
+  font-size: 4rem;
+  display: block;
+  margin: 20px auto;
+  animation: bounceIn .6s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes bounceIn {
+  0%   { transform: scale(0); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.qr-box {
+  background: white;
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 8px 30px var(--shadow);
+  margin: 28px 0;
+  border: 1px solid rgba(247,168,196,0.2);
+}
+.qr-box h3 { font-family: var(--font-head); margin-bottom: 6px; }
+.qr-box p { color: var(--text-light); font-size: 0.85rem; margin-bottom: 20px; }
+#qr-canvas { margin: 0 auto; }
+.link-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(247,168,196,0.1);
+  border: 1px solid rgba(247,168,196,0.3);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-top: 20px;
+  text-align: left;
+}
+.link-box input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--text);
+  outline: none;
+}
+.copy-btn {
+  padding: 8px 16px;
+  background: var(--pink-deep);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all .2s;
+  white-space: nowrap;
+  font-family: var(--font-body);
+}
+.copy-btn:hover { opacity: 0.85; }
+.copy-btn.copied { background: var(--green-d); }
+
+/* ── CARD VIEWER PAGE ────────────────────────────── */
+#page-view {
+  min-height: 100vh;
+  background: linear-gradient(160deg, #fff0f7 0%, #f3eeff 50%, #fff5ee 100%);
+  overflow-x: hidden;
+}
+.view-container { max-width: 680px; margin: 0 auto; }
+
+/* Animated header bouquet */
+.view-header {
+  text-align: center;
+  padding: 80px 24px 40px;
+  position: relative;
+}
+.view-bouquet-display {
+  font-size: 3.2rem;
+  line-height: 1.3;
+  margin-bottom: 20px;
+  animation: bouquetFloat 4s ease-in-out infinite;
+}
+@keyframes bouquetFloat {
+  0%,100% { transform: translateY(0) rotate(-2deg); }
+  50%      { transform: translateY(-12px) rotate(2deg); }
+}
+.view-to-name {
+  font-family: var(--font-script);
+  font-size: 2rem;
+  color: var(--pink-deep);
+}
+.view-occasion-tag {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--pink), var(--lavender));
+  color: white;
+  font-size: 0.85rem;
+  padding: 5px 18px;
+  border-radius: 50px;
+  margin-top: 10px;
+}
+
+/* Image section */
+.view-image-section {
+  padding: 0 24px 40px;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.view-image-section.revealed { opacity: 1; transform: translateY(0); }
+.view-image-section img {
+  width: 100%;
+  max-height: 400px;
+  object-fit: cover;
+  border-radius: 24px;
+  box-shadow: 0 12px 40px var(--shadow);
+}
+.no-image-box {
+  background: linear-gradient(135deg, rgba(247,168,196,0.15), rgba(201,184,232,0.15));
+  border-radius: 24px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
+}
+
+/* Message section */
+.view-message-section {
+  padding: 20px 24px 40px;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.9s ease 0.2s, transform 0.9s ease 0.2s;
+}
+.view-message-section.revealed { opacity: 1; transform: translateY(0); }
+.message-card {
+  background: white;
+  border-radius: 28px;
+  padding: 40px 36px;
+  box-shadow: 0 12px 40px var(--shadow);
+  position: relative;
+  border: 1px solid rgba(247,168,196,0.2);
+}
+.message-card::before {
+  content: '"';
+  font-family: var(--font-head);
+  font-size: 8rem;
+  color: rgba(247,168,196,0.15);
+  position: absolute;
+  top: -10px; left: 20px;
+  line-height: 1;
+}
+.message-text {
+  font-family: var(--font-head);
+  font-size: 1.15rem;
+  font-style: italic;
+  line-height: 1.8;
+  color: var(--text);
+  position: relative;
+  z-index: 1;
+}
+.message-from {
+  margin-top: 20px;
+  text-align: right;
+  font-family: var(--font-script);
+  font-size: 1.3rem;
+  color: var(--pink-deep);
+}
+
+/* React button */
+.react-section {
+  padding: 20px 24px 80px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 1s ease 0.4s, transform 1s ease 0.4s;
+}
+.react-section.revealed { opacity: 1; transform: translateY(0); }
+.react-btn {
+  padding: 16px 40px;
+  background: linear-gradient(135deg, var(--pink), var(--lavender));
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all .3s;
+  box-shadow: 0 6px 25px var(--shadow);
+  font-family: var(--font-body);
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.react-btn:hover { transform: scale(1.05); box-shadow: 0 10px 35px var(--shadow); }
+.react-btn.reacted { background: linear-gradient(135deg, #ff6b9d, #ff3d7f); }
+.react-count {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  margin-top: 10px;
+}
+
+/* Music toggle */
+.music-toggle {
+  position: fixed;
+  bottom: 24px; right: 24px;
+  z-index: 200;
+  background: white;
+  border: 2px solid rgba(247,168,196,0.4);
+  border-radius: 50px;
+  padding: 10px 18px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all .2s;
+  box-shadow: 0 4px 18px var(--shadow);
+  display: none;
+}
+.music-toggle:hover { background: rgba(247,168,196,0.1); }
+.music-toggle.show { display: flex; align-items: center; gap: 6px; }
+
+/* Falling petals on view page */
+.petal-overlay {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  z-index: 200;
+  overflow: hidden;
+  display: none;
+}
+.petal-overlay.show { display: block; }
+
+/* ── LOADING SPINNER ─────────────────────────────── */
+.spinner-overlay {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(255,248,245,0.92);
+  z-index: 500;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 16px;
+  display: none;
+}
+.spinner-overlay.show { display: flex; }
+.spinner {
+  width: 48px; height: 48px;
+  border: 4px solid rgba(247,168,196,0.3);
+  border-top-color: var(--pink-deep);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner-overlay p {
+  font-family: var(--font-head);
+  font-style: italic;
+  color: var(--text-light);
+}
+
+/* ── TOAST ───────────────────────────────────────── */
+.toast {
+  position: fixed;
+  bottom: 30px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--text);
+  color: white;
+  padding: 12px 28px;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  z-index: 999;
+  transition: transform .4s cubic-bezier(.34,1.56,.64,1);
+  pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── COUNTDOWN WIDGET ────────────────────────────── */
+.countdown-box {
+  background: linear-gradient(135deg, rgba(201,184,232,0.2), rgba(247,168,196,0.2));
+  border-radius: 20px;
+  padding: 24px;
+  text-align: center;
+  margin: 20px 24px;
+}
+.countdown-title { font-family: var(--font-head); font-size: 1.1rem; margin-bottom: 12px; }
+.countdown-timer { display: flex; justify-content: center; gap: 16px; }
+.countdown-unit { text-align: center; }
+.countdown-num {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--pink-deep);
+  display: block;
+}
+.countdown-label { font-size: 0.72rem; color: var(--text-light); text-transform: uppercase; letter-spacing: .06em; }
+
+/* ── THEME PICKER ────────────────────────────────── */
+.theme-picker { display: flex; gap: 10px; justify-content: center; margin: 16px 0 24px; }
+.theme-dot {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: transform .2s, border-color .2s;
+}
+.theme-dot:hover { transform: scale(1.2); }
+.theme-dot.active { border-color: var(--text); }
+.theme-dot.pastel { background: linear-gradient(135deg, #f7a8c4, #c9b8e8); }
+.theme-dot.light  { background: linear-gradient(135deg, #e0f0ff, #f0e0ff); }
+.theme-dot.dark   { background: linear-gradient(135deg, #2d1f3d, #1a1a2e); }
+
+/* ── ANIMATIONS & MISC ───────────────────────────── */
+.fade-in { animation: fadeIn .5s ease forwards; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.glowing { animation: glow 2s ease-in-out infinite; }
+@keyframes glow {
+  0%,100% { text-shadow: 0 0 10px rgba(247,168,196,0.3); }
+  50%      { text-shadow: 0 0 30px rgba(247,168,196,0.7), 0 0 60px rgba(201,184,232,0.4); }
+}
+
+/* ── RESPONSIVE ──────────────────────────────────── */
+@media (max-width: 600px) {
+  nav { padding: 14px 20px; }
+  .hero { padding: 60px 20px 40px; }
+  .flowers-grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 8px; }
+  .message-card { padding: 28px 22px; }
+  .message-text { font-size: 1rem; }
+  .occasion-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── GLOBAL ELEMENTS ───────────────────────── -->
+<div class="petals-bg" id="petals-bg"></div>
+<div class="spinner-overlay" id="spinner">
+  <div class="spinner"></div>
+  <p>Creating your card with love... 🌸</p>
+</div>
+<div class="toast" id="toast"></div>
+<div class="petal-overlay" id="petal-overlay"></div>
+<button class="music-toggle" id="music-toggle">🎵 Music</button>
+
+<!-- ══════════════════════════════════════════════
+     NAV
+════════════════════════════════════════════════ -->
+<nav>
+  <div class="nav-logo" onclick="showPage('home')">Virtual Time Capsule 💐</div>
+  <button class="nav-btn" onclick="showPage('create')">Create Card ✨</button>
+</nav>
+
+<!-- ══════════════════════════════════════════════
+     PAGE: HOME
+════════════════════════════════════════════════ -->
+<div class="page active" id="page-home">
+  <section class="hero">
+    <div class="hero-badge">✨ Digital Greeting Cards</div>
+    <span class="hero-flowers">💐🌸🌺🌼💐</span>
+    <h1>Create <em>Beautiful</em><br>Digital Greetings</h1>
+    <p>Share heartfelt moments with custom bouquets, AI-crafted messages, and scroll-based animations your loved ones will treasure forever.</p>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+      <button class="btn-primary" onclick="showPage('create')">Create Your Card 💌</button>
+      <button class="btn-secondary" onclick="scrollTo(0,600)">See Samples ↓</button>
+    </div>
+  </section>
+
+  <section class="features">
+    <div class="feature-item">
+      <div class="icon">💐</div>
+      <h4>Bouquet Builder</h4>
+      <p>Mix & match 10 flowers with leaves to build a unique bouquet</p>
+    </div>
+    <div class="feature-item">
+      <div class="icon">✨</div>
+      <h4>AI Messages</h4>
+      <p>Generate emotional, funny or formal greetings with one click</p>
+    </div>
+    <div class="feature-item">
+      <div class="icon">📲</div>
+      <h4>QR Sharing</h4>
+      <p>Share via link or QR code that works anywhere in real-time</p>
+    </div>
+    <div class="feature-item">
+      <div class="icon">🎵</div>
+      <h4>Background Music</h4>
+      <p>Cards play ambient music as the receiver scrolls through</p>
+    </div>
+    <div class="feature-item">
+      <div class="icon">🌸</div>
+      <h4>Falling Petals</h4>
+      <p>Magical petal animation creates an immersive experience</p>
+    </div>
+    <div class="feature-item">
+      <div class="icon">❤️</div>
+      <h4>React Button</h4>
+      <p>Receivers can send love back with one tap</p>
+    </div>
+  </section>
+
+  <section class="samples">
+    <h2>Sample Cards ✨</h2>
+    <p class="samples-sub">Click to preview what a received card looks like</p>
+    <div class="cards-grid">
+      <div class="sample-card" onclick="loadSampleCard('birthday')">
+        <span class="emoji">🎂</span>
+        <h3>Birthday Card</h3>
+        <p>Send warm wishes with roses and tulips bouquet and a heartfelt message</p>
+        <span class="tag">Birthday 🎂</span>
+      </div>
+      <div class="sample-card" onclick="loadSampleCard('anniversary')">
+        <span class="emoji">💍</span>
+        <h3>Anniversary Card</h3>
+        <p>Celebrate love milestones with a romantic bouquet and emotional message</p>
+        <span class="tag">Anniversary 💍</span>
+      </div>
+      <div class="sample-card" onclick="loadSampleCard('congrats')">
+        <span class="emoji">🎉</span>
+        <h3>Congratulations</h3>
+        <p>Cheer someone's achievement with a vibrant sunflower arrangement</p>
+        <span class="tag">Congratulations 🎉</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PAGE: CREATE CARD (Step 1)
+════════════════════════════════════════════════ -->
+<div class="page" id="page-create">
+  <div class="form-container fade-in">
+    <h2>Create Your Card 💌</h2>
+    <p class="subtitle">Fill in the details below to craft a personalized greeting</p>
+
+    <div class="progress-bar">
+      <div class="progress-step active" id="prog-1"></div>
+      <div class="progress-step" id="prog-2"></div>
+      <div class="progress-step" id="prog-3"></div>
+    </div>
+
+    <!-- Receiver Name -->
+    <div class="field-group">
+      <label>Receiver's Name 💖</label>
+      <input type="text" id="receiver-name" placeholder="e.g. Aarav, Priya, Sophia..." />
+    </div>
+
+    <!-- Sender Name -->
+    <div class="field-group">
+      <label>Your Name (Sender) ✍️</label>
+      <input type="text" id="sender-name" placeholder="e.g. With love, Mum" />
+    </div>
+
+    <!-- Occasion -->
+    <div class="field-group">
+      <label>Occasion 🎊</label>
+      <div class="occasion-grid" id="occasion-grid">
+        <button class="occasion-btn selected" data-val="Birthday" onclick="selectOccasion(this)">🎂 Birthday</button>
+        <button class="occasion-btn" data-val="Anniversary" onclick="selectOccasion(this)">💍 Anniversary</button>
+        <button class="occasion-btn" data-val="Congratulations" onclick="selectOccasion(this)">🎉 Congratulations</button>
+        <button class="occasion-btn" data-val="Custom" onclick="selectOccasion(this)">🌸 Custom</button>
+      </div>
+      <input type="text" id="custom-occasion" placeholder="Your custom occasion..." style="margin-top:10px;display:none" />
+    </div>
+
+    <!-- Photo Upload -->
+    <div class="field-group">
+      <label>Upload a Photo 📷 (optional)</label>
+      <div class="img-upload-area" onclick="document.getElementById('img-input').click()">
+        <div class="upload-icon">📸</div>
+        <p>Click to choose a photo from your gallery</p>
+        <p style="font-size:0.78rem;margin-top:4px;color:var(--lavender-d)">JPG, PNG, GIF, WebP up to 10MB</p>
+        <input type="file" id="img-input" accept="image/*" onchange="previewImage(event)" />
+      </div>
+      <img id="img-preview" src="" alt="Preview" />
+    </div>
+
+    <!-- Theme -->
+    <div class="field-group">
+      <label>Card Theme 🎨</label>
+      <div class="theme-picker">
+        <div class="theme-dot pastel active" data-theme="pastel" onclick="selectTheme(this)" title="Pastel"></div>
+        <div class="theme-dot light"  data-theme="light"  onclick="selectTheme(this)" title="Light"></div>
+        <div class="theme-dot dark"   data-theme="dark"   onclick="selectTheme(this)" title="Dark"></div>
+      </div>
+    </div>
+
+    <!-- Scheduled Date -->
+    <div class="field-group">
+      <label>Schedule for a Date ⏰ (optional)</label>
+      <input type="datetime-local" id="scheduled-date" />
+    </div>
+
+    <!-- Message -->
+    <div class="field-group">
+      <label>Your Message 💬</label>
+
+      <div style="margin-bottom:12px">
+        <p style="font-size:0.82rem;color:var(--text-light);margin-bottom:8px">Choose AI tone:</p>
+        <div class="ai-row">
+          <button class="ai-tone-btn selected" data-tone="emotional" onclick="selectTone(this)">💖 Emotional</button>
+          <button class="ai-tone-btn" data-tone="funny" onclick="selectTone(this)">😄 Funny</button>
+          <button class="ai-tone-btn" data-tone="formal" onclick="selectTone(this)">🎩 Formal</button>
+        </div>
+        <button class="btn-ai" onclick="generateAIMessage()">
+          <span id="ai-btn-text">✨ Generate with AI</span>
+        </button>
+      </div>
+
+      <textarea id="message-text" placeholder="Write your heartfelt message here, or generate one with AI above..."></textarea>
+    </div>
+
+    <div class="form-footer">
+      <button class="btn-back" onclick="showPage('home')">← Back</button>
+      <button class="btn-next" onclick="goToBouquet()">Next: Build Bouquet 💐 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PAGE: BOUQUET BUILDER (Step 2)
+════════════════════════════════════════════════ -->
+<div class="page" id="page-bouquet">
+  <div class="bouquet-container fade-in">
+    <h2>Build Your Bouquet 💐</h2>
+    <p class="subtitle">Select 6–7 flowers (you can pick the same flower multiple times)</p>
+    <p class="bouquet-count" id="bouquet-count">Selected: 0 / 7 flowers</p>
+
+    <div class="progress-bar" style="justify-content:center;margin-bottom:28px">
+      <div class="progress-step done"></div>
+      <div class="progress-step active"></div>
+      <div class="progress-step"></div>
+    </div>
+
+    <!-- Leaves -->
+    <div class="leaves-section">
+      <h4>🌿 Choose up to 3 leaves for your bouquet:</h4>
+      <div class="leaves-grid" id="leaves-grid">
+        <button class="leaf-btn" data-leaf="🌿" onclick="toggleLeaf(this)">🌿 Fern</button>
+        <button class="leaf-btn" data-leaf="🍃" onclick="toggleLeaf(this)">🍃 Leaf</button>
+        <button class="leaf-btn" data-leaf="🌱" onclick="toggleLeaf(this)">🌱 Sprout</button>
+      </div>
+    </div>
+
+    <!-- Flowers -->
+    <div class="flowers-grid" id="flowers-grid">
+      <!-- Generated by JS -->
+    </div>
+
+    <!-- Preview -->
+    <div class="bouquet-preview">
+      <h3>Your Bouquet Preview</h3>
+      <div class="bouquet-display" id="bouquet-display">
+        <span class="bouquet-empty">Your bouquet will appear here 🌸</span>
+      </div>
+    </div>
+
+    <div class="form-footer">
+      <button class="btn-back" onclick="showPage('create')">← Back</button>
+      <button class="btn-next" onclick="submitCard()">Create & Share 🎉 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PAGE: SHARE
+════════════════════════════════════════════════ -->
+<div class="page" id="page-share">
+  <div class="share-container fade-in">
+    <h2>Your Card is Ready! 🎉</h2>
+    <span class="success-icon">🌸</span>
+    <p style="color:var(--text-light)">Share this link or QR code so your loved one can open their special greeting</p>
+
+    <div class="qr-box">
+      <h3>Scan QR Code 📲</h3>
+      <p>Works in any camera app or QR reader</p>
+      <div id="qr-canvas"></div>
+
+      <div class="link-box" style="margin-top:20px">
+        <input type="text" id="share-link-input" readonly />
+        <button class="copy-btn" id="copy-btn" onclick="copyLink()">Copy 📋</button>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:8px">
+      <button class="btn-primary" onclick="openCard()">Preview Card 💌</button>
+      <button class="btn-secondary" onclick="showPage('create')">Create Another ✨</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     PAGE: VIEW CARD
+════════════════════════════════════════════════ -->
+<div class="page" id="page-view">
+  <div class="view-container">
+    <!-- Animated bouquet header -->
+    <div class="view-header">
+      <div class="view-bouquet-display glowing" id="view-bouquet"></div>
+      <div class="view-to-name" id="view-to-name">For You 💖</div>
+      <span class="view-occasion-tag" id="view-occasion-tag">Birthday 🎂</span>
+    </div>
+
+    <!-- Countdown (if scheduled) -->
+    <div class="countdown-box" id="countdown-box" style="display:none">
+      <div class="countdown-title">⏰ This wish arrives in:</div>
+      <div class="countdown-timer" id="countdown-timer"></div>
+    </div>
+
+    <!-- Image -->
+    <div class="view-image-section" id="view-image-section">
+      <img id="view-image" src="" alt="Card image" />
+      <div class="no-image-box" id="view-no-image">💐</div>
+    </div>
+
+    <!-- Message -->
+    <div class="view-message-section" id="view-message-section">
+      <div class="message-card">
+        <p class="message-text" id="view-message-text"></p>
+        <p class="message-from" id="view-from"></p>
+      </div>
+    </div>
+
+    <!-- React button -->
+    <div class="react-section" id="react-section">
+      <button class="react-btn" id="react-btn" onclick="reactToCard()">
+        ❤️ Send Love Back
+      </button>
+      <p class="react-count" id="react-count"></p>
+    </div>
+  </div>
+</div>
+
+<!-- Audio element (ambient background music) -->
+<audio id="bg-music" loop>
+  <!-- Using a free ambient music file; you can replace src with any music URL -->
+  <source src="https://www.bensound.com/bensound-music/bensound-romantic.mp3" type="audio/mp3" />
+</audio>
+
+<script>
+// ════════════════════════════════════════════════
+//   GLOBAL STATE
+// ════════════════════════════════════════════════
+const API = 'http://localhost:5000'; // Change this to your backend URL
+
+const state = {
+  receiverName: '',
+  senderName: 'Anonymous',
+  occasion: 'Birthday',
+  customOccasion: '',
+  message: '',
+  tone: 'emotional',
+  theme: 'pastel',
+  scheduledDate: '',
+  bouquet: [],
+  leaves: [],
+  imageFile: null,
+  cardId: null,
+  cardLink: null,
+  currentViewId: null,
+};
+
+// ── Flower options ─────────────────────────────
+const FLOWERS = [
+  { emoji: '🌹', name: 'Rose' },
+  { emoji: '🌷', name: 'Tulip' },
+  { emoji: '🌸', name: 'Cherry Blossom' },
+  { emoji: '🌺', name: 'Hibiscus' },
+  { emoji: '🌼', name: 'Daisy' },
+  { emoji: '🌻', name: 'Sunflower' },
+  { emoji: '💐', name: 'Bouquet' },
+  { emoji: '🪷', name: 'Lotus' },
+  { emoji: '🌹', name: 'Orchid' },  // re-use for orchid
+  { emoji: '🪻', name: 'Lavender' },
+];
+
+// ════════════════════════════════════════════════
+//   PAGE NAVIGATION
+// ════════════════════════════════════════════════
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(`page-${id}`).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Show/hide music toggle on view page
+  document.getElementById('music-toggle').classList.toggle('show', id === 'view');
+
+  // Init flower grid when showing bouquet
+  if (id === 'bouquet') renderFlowerGrid();
+
+  // URL management
+  if (id !== 'view') {
+    history.replaceState({}, '', window.location.pathname);
+  }
+}
+
+// ════════════════════════════════════════════════
+//   FLOATING PETALS BACKGROUND
+// ════════════════════════════════════════════════
+(function initPetals() {
+  const container = document.getElementById('petals-bg');
+  const petals = ['🌸','🌺','🌼','🌷','💮','🏵️'];
+  for (let i = 0; i < 12; i++) {
+    const p = document.createElement('span');
+    p.className = 'petal';
+    p.textContent = petals[Math.floor(Math.random() * petals.length)];
+    p.style.left = `${Math.random() * 100}%`;
+    p.style.fontSize = `${0.8 + Math.random() * 1.2}rem`;
+    p.style.animationDuration = `${8 + Math.random() * 12}s`;
+    p.style.animationDelay = `${Math.random() * 10}s`;
+    container.appendChild(p);
+  }
+})();
+
+// ════════════════════════════════════════════════
+//   FORM: OCCASION
+// ════════════════════════════════════════════════
+function selectOccasion(el) {
+  document.querySelectorAll('.occasion-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  state.occasion = el.dataset.val;
+  const custom = document.getElementById('custom-occasion');
+  custom.style.display = state.occasion === 'Custom' ? 'block' : 'none';
+}
+
+// ════════════════════════════════════════════════
+//   FORM: THEME
+// ════════════════════════════════════════════════
+function selectTheme(el) {
+  document.querySelectorAll('.theme-dot').forEach(d => d.classList.remove('active'));
+  el.classList.add('active');
+  state.theme = el.dataset.theme;
+}
+
+// ════════════════════════════════════════════════
+//   FORM: IMAGE PREVIEW
+// ════════════════════════════════════════════════
+function previewImage(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  state.imageFile = file;
+  const preview = document.getElementById('img-preview');
+  preview.src = URL.createObjectURL(file);
+  preview.style.display = 'block';
+}
+
+// ════════════════════════════════════════════════
+//   AI MESSAGE GENERATION
+// ════════════════════════════════════════════════
+function selectTone(el) {
+  document.querySelectorAll('.ai-tone-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  state.tone = el.dataset.tone;
+}
+
+async function generateAIMessage() {
+  const receiverName = document.getElementById('receiver-name').value.trim();
+  const btn = document.getElementById('ai-btn-text');
+  btn.textContent = '✨ Generating...';
+
+  try {
+    const res = await fetch(`${API}/api/generate-message`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        occasion: state.occasion,
+        tone: state.tone,
+        receiverName: receiverName || 'you',
+      }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('message-text').value = data.message;
+      state.message = data.message;
+      showToast('✨ Message generated!');
+    } else {
+      // Fallback: use local templates
+      document.getElementById('message-text').value = getLocalMessage(state.occasion, state.tone, receiverName);
+      showToast('✨ Message generated (offline mode)!');
+    }
+  } catch {
+    // Backend not running — use local templates
+    const name = receiverName || 'you';
+    document.getElementById('message-text').value = getLocalMessage(state.occasion, state.tone, name);
+    showToast('✨ Message generated (offline mode)!');
+  }
+
+  btn.textContent = '✨ Generate with AI';
+}
+
+// Fallback local message generator when backend isn't running
+function getLocalMessage(occasion, tone, name) {
+  const templates = {
+    Birthday: {
+      emotional: `Dear ${name}, on this beautiful day, I want you to know how cherished and loved you truly are. May every wish you make today come true. Happy Birthday! 🌸`,
+      funny: `Happy Birthday, ${name}! You're officially one year closer to being a certified legend. Now go eat cake before someone else does! 🎂😄`,
+      formal: `Dear ${name}, please accept my warmest congratulations on the occasion of your birthday. May this year bring you health, happiness, and continued success.`,
+    },
+    Anniversary: {
+      emotional: `${name}, every moment with you is a gift I treasure deeply. Happy Anniversary to the one who makes every day feel like a celebration. ❤️`,
+      funny: `Happy Anniversary, ${name}! Another year of choosing each other. You both deserve a medal — and probably a nap. 💍😄`,
+      formal: `Dear ${name}, on this anniversary I extend my sincerest congratulations and warmest wishes for continued happiness together.`,
+    },
+    Congratulations: {
+      emotional: `${name}, this achievement is the result of your hard work, dedication, and beautiful spirit. I am so incredibly proud of you! 🎉`,
+      funny: `Congratulations ${name}! You did it! I always knew you would — I just didn't want to make it weird by saying it too often 😄🎊`,
+      formal: `Dear ${name}, heartfelt congratulations on this well-deserved achievement. Your dedication has truly paid off.`,
+    },
+    Custom: {
+      emotional: `${name}, some words aren't big enough to hold what I feel, but know this — you are deeply loved and appreciated. 💐`,
+      funny: `Hey ${name}, I made this card because you're absolutely worth the effort. Which, for me, is saying a lot 😄🌺`,
+      formal: `Dear ${name}, I am sending this message with warm regards and sincere best wishes for all that lies ahead.`,
+    },
+  };
+  const t = templates[occasion] || templates['Custom'];
+  return (t[tone] || t['emotional']);
+}
+
+// ════════════════════════════════════════════════
+//   BOUQUET BUILDER
+// ════════════════════════════════════════════════
+const flowerCounts = {}; // emoji → count
+
+function renderFlowerGrid() {
+  const grid = document.getElementById('flowers-grid');
+  grid.innerHTML = '';
+  FLOWERS.forEach((f, i) => {
+    const card = document.createElement('div');
+    card.className = 'flower-card';
+    card.dataset.emoji = f.emoji;
+    card.dataset.name = f.name;
+    card.innerHTML = `
+      <span class="flower-emoji">${f.emoji}</span>
+      <span class="flower-name">${f.name}</span>
+      <span class="flower-count" id="fc-${i}">0</span>
+    `;
+    card.addEventListener('click', () => addFlower(f.emoji, card, i));
+    card.addEventListener('dblclick', () => removeFlower(f.emoji, card, i));
+    grid.appendChild(card);
+  });
+}
+
+function addFlower(emoji, card, idx) {
+  const total = state.bouquet.length;
+  if (total >= 7) { showToast('Max 7 flowers! Double-click to remove one 🌸'); return; }
+  state.bouquet.push(emoji);
+  flowerCounts[emoji] = (flowerCounts[emoji] || 0) + 1;
+  const countEl = document.getElementById(`fc-${idx}`);
+  countEl.textContent = flowerCounts[emoji];
+  card.classList.add('selected');
+  updateBouquetPreview();
+}
+
+function removeFlower(emoji, card, idx) {
+  const pos = state.bouquet.lastIndexOf(emoji);
+  if (pos === -1) return;
+  state.bouquet.splice(pos, 1);
+  flowerCounts[emoji] = Math.max(0, (flowerCounts[emoji] || 1) - 1);
+  const countEl = document.getElementById(`fc-${idx}`);
+  countEl.textContent = flowerCounts[emoji];
+  if (flowerCounts[emoji] === 0) card.classList.remove('selected');
+  updateBouquetPreview();
+}
+
+function toggleLeaf(btn) {
+  const leaf = btn.dataset.leaf;
+  if (btn.classList.contains('selected')) {
+    state.leaves = state.leaves.filter(l => l !== leaf);
+    btn.classList.remove('selected');
+  } else {
+    if (state.leaves.length >= 3) { showToast('Max 3 leaf types! 🌿'); return; }
+    state.leaves.push(leaf);
+    btn.classList.add('selected');
+  }
+  updateBouquetPreview();
+}
+
+function updateBouquetPreview() {
+  const display = document.getElementById('bouquet-display');
+  const count = document.getElementById('bouquet-count');
+  count.textContent = `Selected: ${state.bouquet.length} / 7 flowers`;
+
+  if (state.bouquet.length === 0 && state.leaves.length === 0) {
+    display.innerHTML = '<span class="bouquet-empty">Your bouquet will appear here 🌸</span>';
+    return;
+  }
+
+  // Interleave flowers and leaves in a nice bouquet arrangement
+  const items = [];
+  // Add flowers
+  state.bouquet.forEach(f => items.push({ type: 'flower', emoji: f }));
+  // Add leaves spread through the bouquet
+  state.leaves.forEach(l => items.push({ type: 'leaf', emoji: l }));
+
+  // Sort so leaves appear between flowers
+  const shuffled = [...items].sort((a, b) => {
+    if (a.type === 'leaf') return Math.random() > 0.5 ? 1 : -1;
+    return 0;
+  });
+
+  display.innerHTML = shuffled.map(item => {
+    const cls = item.type === 'flower' ? 'bouquet-flower' : 'bouquet-leaf';
+    return `<span class="${cls}">${item.emoji}</span>`;
+  }).join('');
+}
+
+function goToBouquet() {
+  state.receiverName = document.getElementById('receiver-name').value.trim();
+  state.senderName = document.getElementById('sender-name').value.trim() || 'Anonymous';
+  state.message = document.getElementById('message-text').value.trim();
+  state.scheduledDate = document.getElementById('scheduled-date').value;
+  state.customOccasion = document.getElementById('custom-occasion').value.trim();
+
+  if (!state.receiverName) { showToast('Please enter the receiver\'s name 💖'); return; }
+  if (!state.message) { showToast('Please write or generate a message 💬'); return; }
+
+  showPage('bouquet');
+}
+
+// ════════════════════════════════════════════════
+//   SUBMIT CARD
+// ════════════════════════════════════════════════
+async function submitCard() {
+  if (state.bouquet.length < 1) { showToast('Please add at least 1 flower 🌸'); return; }
+
+  // Update progress bar
+  document.querySelectorAll('.progress-step').forEach((s, i) => {
+    s.classList.toggle('done', i < 2);
+    s.classList.toggle('active', i === 2);
+  });
+
+  showSpinner(true);
+
+  try {
+    // Build FormData for multipart upload
+    const form = new FormData();
+    form.append('receiverName', state.receiverName);
+    form.append('senderName', state.senderName);
+    form.append('occasion', state.occasion);
+    form.append('customOccasion', state.customOccasion);
+    form.append('message', state.message);
+    form.append('bouquet', JSON.stringify([...state.bouquet, ...state.leaves]));
+    form.append('theme', state.theme);
+    if (state.scheduledDate) form.append('scheduledDate', state.scheduledDate);
+    if (state.imageFile) form.append('image', state.imageFile);
+
+    const res = await fetch(`${API}/api/cards`, { method: 'POST', body: form });
+    const data = await res.json();
+
+    if (data.success) {
+      state.cardId = data.data.id;
+      state.cardLink = data.data.link;
+
+      // Save to localStorage as fallback
+      saveToLocalStorage(data.data.id);
+
+      showSpinner(false);
+      showSharePage(data.data.id, data.data.link, data.data.qrCode);
+    } else {
+      throw new Error(data.error || 'Failed to create card');
+    }
+  } catch (err) {
+    // Backend not available — save to localStorage and generate local QR
+    console.warn('Backend unavailable, using localStorage:', err.message);
+    const id = generateLocalId();
+    state.cardId = id;
+    const link = `${window.location.origin}${window.location.pathname}?card=${id}`;
+    state.cardLink = link;
+    saveToLocalStorage(id);
+    showSpinner(false);
+    showSharePage(id, link, null);
+  }
+}
+
+function generateLocalId() {
+  return Math.random().toString(36).substring(2, 12);
+}
+
+function saveToLocalStorage(id) {
+  const card = {
+    cardId: id,
+    receiverName: state.receiverName,
+    senderName: state.senderName,
+    occasion: state.occasion,
+    customOccasion: state.customOccasion,
+    message: state.message,
+    bouquet: [...state.bouquet, ...state.leaves],
+    theme: state.theme,
+    scheduledDate: state.scheduledDate,
+    likes: 0,
+    createdAt: new Date().toISOString(),
+  };
+
+  // Save image as base64 if present
+  if (state.imageFile) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      card.imageBase64 = e.target.result;
+      localStorage.setItem(`vtc_card_${id}`, JSON.stringify(card));
+    };
+    reader.readAsDataURL(state.imageFile);
+  } else {
+    localStorage.setItem(`vtc_card_${id}`, JSON.stringify(card));
+  }
+}
+
+// ════════════════════════════════════════════════
+//   SHARE PAGE
+// ════════════════════════════════════════════════
+function showSharePage(id, link, qrBase64) {
+  showPage('share');
+  document.getElementById('share-link-input').value = link;
+
+  // Generate QR code
+  const qrContainer = document.getElementById('qr-canvas');
+  qrContainer.innerHTML = '';
+
+  if (typeof QRCode !== 'undefined') {
+    new QRCode(qrContainer, {
+      text: link,
+      width: 220,
+      height: 220,
+      colorDark: '#6b3fa0',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M,
+    });
+  } else if (qrBase64) {
+    const img = document.createElement('img');
+    img.src = qrBase64;
+    img.style.width = '220px';
+    qrContainer.appendChild(img);
+  }
+}
+
+function copyLink() {
+  const input = document.getElementById('share-link-input');
+  navigator.clipboard.writeText(input.value).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = 'Copied! ✅';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy 📋'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function openCard() {
+  if (state.cardId) loadCardById(state.cardId);
+}
+
+// ════════════════════════════════════════════════
+//   VIEW CARD
+// ════════════════════════════════════════════════
+async function loadCardById(id) {
+  showSpinner(true);
+
+  let card = null;
+
+  // Try backend first
+  try {
+    const res = await fetch(`${API}/api/cards/${id}`);
+    const data = await res.json();
+    if (data.success) card = data.data;
+  } catch {}
+
+  // Fall back to localStorage
+  if (!card) {
+    const stored = localStorage.getItem(`vtc_card_${id}`);
+    if (stored) card = JSON.parse(stored);
+  }
+
+  showSpinner(false);
+
+  if (!card) {
+    showToast('Card not found 😢');
+    return;
+  }
+
+  state.currentViewId = id;
+  renderCardView(card);
+  showPage('view');
+  startPetalAnimation();
+}
+
+function renderCardView(card) {
+  // Bouquet display
+  const bouquetEl = document.getElementById('view-bouquet');
+  if (card.bouquet && card.bouquet.length > 0) {
+    bouquetEl.textContent = card.bouquet.join(' ');
+  } else {
+    bouquetEl.textContent = '💐🌸🌺';
+  }
+
+  // Name & occasion
+  document.getElementById('view-to-name').textContent = `For ${card.receiverName} 💖`;
+  const occasionMap = { Birthday: 'Birthday 🎂', Anniversary: 'Anniversary 💍', Congratulations: 'Congratulations 🎉', Custom: card.customOccasion || 'Custom 🌸' };
+  document.getElementById('view-occasion-tag').textContent = occasionMap[card.occasion] || card.occasion;
+
+  // Countdown timer
+  if (card.scheduledDate) {
+    const target = new Date(card.scheduledDate);
+    if (target > new Date()) {
+      startCountdown(target);
+      document.getElementById('countdown-box').style.display = 'block';
+    }
+  }
+
+  // Image
+  const viewImage = document.getElementById('view-image');
+  const noImage = document.getElementById('view-no-image');
+  if (card.image) {
+    viewImage.src = `${API}${card.image}`;
+    viewImage.style.display = 'block';
+    noImage.style.display = 'none';
+  } else if (card.imageBase64) {
+    viewImage.src = card.imageBase64;
+    viewImage.style.display = 'block';
+    noImage.style.display = 'none';
+  } else {
+    viewImage.style.display = 'none';
+    noImage.style.display = 'flex';
+  }
+
+  // Message
+  document.getElementById('view-message-text').textContent = card.message;
+  document.getElementById('view-from').textContent = `— ${card.senderName || 'Anonymous'}`;
+
+  // Likes
+  document.getElementById('react-count').textContent = card.likes > 0 ? `${card.likes} ❤️ reactions` : '';
+
+  // Apply theme
+  applyTheme(card.theme || 'pastel');
+
+  // Scroll-based reveal animations
+  setTimeout(() => setupScrollReveal(), 300);
+
+  // Auto-play music after interaction
+  setupMusicToggle();
+}
+
+function applyTheme(theme) {
+  const root = document.documentElement;
+  if (theme === 'dark') {
+    root.style.setProperty('--cream', '#1a1028');
+    root.style.setProperty('--text', '#f0d8f0');
+    root.style.setProperty('--text-light', '#b89ab8');
+    document.getElementById('page-view').style.background = 'linear-gradient(160deg, #1a1028 0%, #0f0a1e 50%, #1a0f1a 100%)';
+  } else if (theme === 'light') {
+    root.style.setProperty('--cream', '#e8f4ff');
+    document.getElementById('page-view').style.background = 'linear-gradient(160deg, #e8f4ff 0%, #f0e8ff 50%, #ffe8f8 100%)';
+  }
+  // pastel = default, no override needed
+}
+
+function setupScrollReveal() {
+  const sections = [
+    document.getElementById('view-image-section'),
+    document.getElementById('view-message-section'),
+    document.getElementById('react-section'),
+  ];
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) entry.target.classList.add('revealed');
+    });
+  }, { threshold: 0.1 });
+
+  sections.forEach(s => { if (s) observer.observe(s); });
+
+  // Reveal first section immediately if in view
+  setTimeout(() => {
+    sections.forEach(s => {
+      if (s && s.getBoundingClientRect().top < window.innerHeight) {
+        s.classList.add('revealed');
+      }
+    });
+  }, 200);
+}
+
+async function reactToCard() {
+  const btn = document.getElementById('react-btn');
+  if (btn.classList.contains('reacted')) return;
+
+  btn.classList.add('reacted');
+  btn.textContent = '💕 Loved!';
+
+  try {
+    const res = await fetch(`${API}/api/cards/${state.currentViewId}/like`, { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('react-count').textContent = `${data.likes} ❤️ reactions`;
+    }
+  } catch {
+    // Update localStorage
+    const stored = localStorage.getItem(`vtc_card_${state.currentViewId}`);
+    if (stored) {
+      const card = JSON.parse(stored);
+      card.likes = (card.likes || 0) + 1;
+      localStorage.setItem(`vtc_card_${state.currentViewId}`, JSON.stringify(card));
+      document.getElementById('react-count').textContent = `${card.likes} ❤️ reactions`;
+    }
+  }
+
+  showToast('💕 Love sent!');
+  spawnHearts();
+}
+
+// ════════════════════════════════════════════════
+//   ANIMATIONS
+// ════════════════════════════════════════════════
+function startPetalAnimation() {
+  const overlay = document.getElementById('petal-overlay');
+  overlay.classList.add('show');
+  overlay.innerHTML = '';
+
+  const petals = ['🌸', '🌺', '🌼', '🌷', '💮'];
+  for (let i = 0; i < 20; i++) {
+    const p = document.createElement('span');
+    p.className = 'petal';
+    p.textContent = petals[Math.floor(Math.random() * petals.length)];
+    p.style.left = `${Math.random() * 100}%`;
+    p.style.fontSize = `${0.8 + Math.random() * 1.5}rem`;
+    p.style.animationDuration = `${6 + Math.random() * 10}s`;
+    p.style.animationDelay = `${Math.random() * 8}s`;
+    overlay.appendChild(p);
+  }
+}
+
+function spawnHearts() {
+  for (let i = 0; i < 12; i++) {
+    const h = document.createElement('span');
+    h.style.cssText = `
+      position: fixed;
+      left: ${Math.random() * 100}vw;
+      bottom: 30vh;
+      font-size: ${1 + Math.random() * 1.5}rem;
+      pointer-events: none;
+      z-index: 1000;
+      animation: petalFall ${2 + Math.random() * 2}s ease-out forwards;
+    `;
+    h.textContent = ['❤️', '💕', '💖', '💗', '💝'][Math.floor(Math.random() * 5)];
+    document.body.appendChild(h);
+    setTimeout(() => h.remove(), 4000);
+  }
+}
+
+// ════════════════════════════════════════════════
+//   COUNTDOWN TIMER
+// ════════════════════════════════════════════════
+function startCountdown(targetDate) {
+  function update() {
+    const now = new Date();
+    const diff = targetDate - now;
+    if (diff <= 0) {
+      document.getElementById('countdown-box').style.display = 'none';
+      return;
+    }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+
+    document.getElementById('countdown-timer').innerHTML = `
+      <div class="countdown-unit"><span class="countdown-num">${d}</span><span class="countdown-label">Days</span></div>
+      <div class="countdown-unit"><span class="countdown-num">${h}</span><span class="countdown-label">Hours</span></div>
+      <div class="countdown-unit"><span class="countdown-num">${m}</span><span class="countdown-label">Min</span></div>
+      <div class="countdown-unit"><span class="countdown-num">${s}</span><span class="countdown-label">Sec</span></div>
+    `;
+  }
+  update();
+  setInterval(update, 1000);
+}
+
+// ════════════════════════════════════════════════
+//   MUSIC
+// ════════════════════════════════════════════════
+let musicPlaying = false;
+function setupMusicToggle() {
+  const btn = document.getElementById('music-toggle');
+  btn.onclick = () => {
+    const audio = document.getElementById('bg-music');
+    if (musicPlaying) {
+      audio.pause();
+      musicPlaying = false;
+      btn.innerHTML = '🔇 Music';
+    } else {
+      audio.play().catch(() => {});
+      musicPlaying = true;
+      btn.innerHTML = '🎵 Music On';
+    }
+  };
+}
+
+// ════════════════════════════════════════════════
+//   SAMPLE CARDS
+// ════════════════════════════════════════════════
+function loadSampleCard(type) {
+  const samples = {
+    birthday: {
+      cardId: 'sample-birthday',
+      receiverName: 'Priya',
+      senderName: 'With love, Mum',
+      occasion: 'Birthday',
+      message: 'Dear Priya, another year has passed, and with it comes the reminder of how incredibly special you are to me. On your birthday, I want you to know that your existence makes the world a warmer, brighter place. May this year bring you everything your heart has been quietly wishing for. Happy Birthday! 🌸',
+      bouquet: ['🌹', '🌷', '🌸', '🌺', '🌼', '🌿', '🍃'],
+      theme: 'pastel',
+      likes: 24,
+    },
+    anniversary: {
+      cardId: 'sample-anniversary',
+      receiverName: 'Rahul & Meera',
+      senderName: 'Your Family 💖',
+      occasion: 'Anniversary',
+      message: 'Every anniversary is a chapter in a love story that keeps getting more beautiful. Looking back at all the moments you\'ve shared, we are overwhelmed with joy. Here\'s to you — to every laugh, every tear, every quiet moment that made it all worthwhile. Happy Anniversary! 💍',
+      bouquet: ['🌹', '🌹', '🌷', '🌺', '🌸', '🌿', '🍃'],
+      theme: 'pastel',
+      likes: 48,
+    },
+    congrats: {
+      cardId: 'sample-congrats',
+      receiverName: 'Arjun',
+      senderName: 'Your Team 🎉',
+      occasion: 'Congratulations',
+      message: 'Arjun, this achievement is a reflection of your countless late nights, your quiet perseverance, and your unshakeable belief in yourself. You earned every bit of this. I am so incredibly proud of you! 🎉✨',
+      bouquet: ['🌻', '🌼', '🌸', '🌺', '🌷', '🌱', '🌿'],
+      theme: 'pastel',
+      likes: 62,
+    },
+  };
+
+  const card = samples[type];
+  state.currentViewId = card.cardId;
+  renderCardView(card);
+  showPage('view');
+  startPetalAnimation();
+}
+
+// ════════════════════════════════════════════════
+//   UTILITIES
+// ════════════════════════════════════════════════
+function showSpinner(show) {
+  document.getElementById('spinner').classList.toggle('show', show);
+}
+
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ════════════════════════════════════════════════
+//   URL ROUTING — support ?card=ID in URL
+// ════════════════════════════════════════════════
+(function checkUrlForCard() {
+  const params = new URLSearchParams(window.location.search);
+  const cardId = params.get('card') || params.get('id');
+  if (cardId) {
+    loadCardById(cardId);
+  }
+})();
+</script>
+</body>
+</html>
